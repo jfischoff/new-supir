@@ -32,8 +32,6 @@ from ...util import (
     instantiate_from_config,
 )
 
-from CKPT_PTH import SDXL_CLIP1_PATH, SDXL_CLIP2_CKPT_PTH
-
 class AbstractEmbModel(nn.Module):
     def __init__(self):
         super().__init__()
@@ -456,11 +454,12 @@ class FrozenCLIPEmbedder(AbstractEmbModel):
         layer="last",
         layer_idx=None,
         always_return_pooled=False,
+        sdxl_clip1_path=None,
     ):  # clip-vit-base-patch32
         super().__init__()
         assert layer in self.LAYERS
-        self.tokenizer = CLIPTokenizer.from_pretrained(version if SDXL_CLIP1_PATH is None else SDXL_CLIP1_PATH)
-        self.transformer = CLIPTextModel.from_pretrained(version if SDXL_CLIP1_PATH is None else SDXL_CLIP1_PATH)
+        self.tokenizer = CLIPTokenizer.from_pretrained(version if sdxl_clip1_path is None else sdxl_clip1_path)
+        self.transformer = CLIPTextModel.from_pretrained(version if sdxl_clip1_path is None else sdxl_clip1_path)
         self.device = device
         self.max_length = max_length
         if freeze:
@@ -524,13 +523,14 @@ class FrozenOpenCLIPEmbedder2(AbstractEmbModel):
         layer="last",
         always_return_pooled=False,
         legacy=True,
+        sdxl_clip2_cache_dir=None
     ):
         super().__init__()
         assert layer in self.LAYERS
         model, _, _ = open_clip.create_model_and_transforms(
             arch,
             device=torch.device("cpu"),
-            pretrained=version if SDXL_CLIP2_CKPT_PTH is None else SDXL_CLIP2_CKPT_PTH,
+            pretrained=version if sdxl_clip2_cache_dir is None else sdxl_clip2_cache_dir,
         )
         del model.visual
         self.model = model
